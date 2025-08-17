@@ -285,6 +285,11 @@ def interactive_level_shell(level_name, level_num, user_id):
                 f"docker run -dit --privileged --name {level_name} "
                 f"{docker_image} /bin/sh > /dev/null 2>&1" # Maybe bash instead of sh
             )
+        elif level_num == 6:
+            level_string = (
+                f"docker run -dit --hostname {user_id} --name {level_name} "
+                f"{docker_image} > /dev/null 2>&1"
+            )
         else:
             # Default run command
             level_string = (
@@ -321,7 +326,7 @@ def interactive_level_shell(level_name, level_num, user_id):
             else:
                 print(f"{RED}{BOLD}Incorrect flag. Try again.{RESET}")
         elif user_input.lower() == "play":
-            attach_command = f"docker start {level_name} > ./log.txt && docker exec -it {level_name} sh"
+            attach_command = f"docker start {level_name} > /dev/null 2>&1 && docker exec -it {level_name} sh"
             os.system(attach_command)
         elif user_input.lower() == "exit":
             print("Exiting current level session.")
