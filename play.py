@@ -216,7 +216,7 @@ def pull_initial_levels(current_level):
     loader_thread.join()
     return True
 
-def setup(current_level=1):
+def setup(current_level=0):
     if not are_you_sudo():
         print(f"{BOLD}{RED}Run the script with sudo!{RESET}")
         return 1
@@ -247,7 +247,7 @@ def get_current_level(user_id):
     try:
         resp = requests.get(f"{BACKEND_URL}/getLevel", params={"userId": user_id})
         if resp.status_code == 200:
-            return resp.json().get("level", 1)
+            return resp.json().get("level", 0)
     except Exception as e:
         print(f"Could not connect to backend: {e}")
     return -1
@@ -279,18 +279,27 @@ def interactive_level_shell(level_name, level_num, user_id):
     tag = f"war{level_num}"
     docker_image = f"ghcr.io/avadhutmali/linuxdiary6.0-wargames-level:{tag}"
     if container_exists != 0:
-        level_string = (
-            f"docker run -dit --hostname {user_id} --name {level_name} "
-            f"{docker_image} /bin/sh > /dev/null 2>&1"
-        )
+        if level_num == 10:
+            # Custom run command for level 10
+            level_string = (
+                f"docker run -dit --privileged --name {level_name} "
+                f"{docker_image} /bin/sh > /dev/null 2>&1" # Maybe bash instead of sh
+            )
+        else:
+            # Default run command
+            level_string = (
+                f"docker run -dit --hostname {user_id} --name {level_name} "
+                f"{docker_image} /bin/sh > /dev/null 2>&1"
+            )
+
         exit_code = subprocess.call(level_string, shell=True)
         if exit_code != 0:
             print("Failed to start container. Exiting...")
             return False
+
     print_section_header(f"Welcome {user_id}, to Wargames Level {level_num}")
     print(f"{GREEN}{BOLD}Submit the flag using 'submit FLAG{{...}}' below.{RESET}")
     print(f"{GREEN}{BOLD}Type 'play' to open your Docker shell. Type 'exit' to quit this level session.{RESET}")
-    # print(f"{YELLOW}{BOLD}Type 'delete' to delete your CTF account and exit permanently.{RESET}")
 
     while True:
         try:
@@ -369,7 +378,7 @@ def main():
     # Only print congratulations if actually completed all levels
     if current_level > total_levels:
         print(f"{BOLD}{GREEN}\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{RESET}")
-        print(f"{BOLD}{GREEN}  🎉 Congratulations! You completed the CTF! 🎉{RESET}")
+        print(f"{BOLD}{GREEN}  🎉 Congratulations! You completed the WARGAMES! 🎉{RESET}")
         print(f"{BOLD}{GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{RESET}")
 
     else:
